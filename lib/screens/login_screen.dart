@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
 import '../widgets/glass_card.dart';
-import 'vault_list_screen.dart';
+import 'main_screen.dart';
 import 'user_form_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const VaultListScreen()),
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       }
     } else {
@@ -48,171 +48,109 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const VaultListScreen()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient & Abstract Shapes
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF020617), Color(0xFF0F172A), Color(0xFF1E1B4B)],
-              ),
-            ),
-          ),
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF6366F1).withValues(alpha: 0.15),
-              ),
-            ),
-          ),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Hero(
-                    tag: 'app_logo',
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF6366F1).withValues(alpha: 0.3),
-                            blurRadius: 40,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          'assets/app_logo.png',
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Hero(
+                  tag: 'app_logo',
+                  child: Image.asset(
+                    'assets/app_logo_v2.png',
+                    height: 120,
+                    color: isDark ? null : theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'SMART SECURE VAULT',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                Text(
+                  'Tu privacidad es nuestra prioridad',
+                  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 13),
+                ),
+                const SizedBox(height: 48),
+                GlassCard(
+                  padding: const EdgeInsets.all(24),
+                  opacity: 0.05,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo Electrónico',
+                          prefixIcon: Icon(Icons.email_outlined),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Smart Vault',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const Text(
-                    'SEGURIDAD NIVEL INDUSTRIAL',
-                    style: TextStyle(
-                      color: Color(0xFF818CF8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-                  GlassCard(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            hintText: 'Correo Electrónico',
-                            prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
-                          ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Llave Maestra',
+                          prefixIcon: Icon(Icons.key_rounded),
                         ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            hintText: 'Llave Maestra',
-                            prefixIcon: Icon(Icons.key_rounded, size: 20),
-                          ),
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 32),
-                        _isLoading
+                      ),
+                      const SizedBox(height: 32),
+                      _isLoading
                           ? const CircularProgressIndicator()
                           : ElevatedButton(
                               onPressed: _login,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 56),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
                               child: const Text('ACCEDER A LA BÓVEDA'),
                             ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(width: 40, height: 1, color: Colors.white10),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('O ACCESO RÁPIDO', style: TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: _loginWithBiometrics,
+                        icon: const Icon(Icons.fingerprint_rounded),
+                        label: const Text('BIOMETRÍA'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
                       ),
-                      Container(width: 40, height: 1, color: Colors.white10),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  IconButton(
-                    onPressed: _loginWithBiometrics,
-                    icon: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white10),
-                        color: Colors.white.withValues(alpha: 0.05),
-                      ),
-                      child: const Icon(Icons.fingerprint_rounded, size: 40, color: Colors.white70),
-                    ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const UserFormScreen()),
+                    );
+                  },
+                  child: Text(
+                    '¿No tienes cuenta? Regístrate',
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
-                  const SizedBox(height: 40),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const UserFormScreen()),
-                      );
-                    },
-                    child: RichText(
-                      text: TextSpan(
-                        text: '¿Nuevo por aquí? ',
-                        style: const TextStyle(color: Colors.white54),
-                        children: [
-                          TextSpan(
-                            text: 'Crea tu Bóveda',
-                            style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -5,13 +5,39 @@ import '../services/security_service.dart';
 
 class VaultController with ChangeNotifier {
   List<VaultEntry> _entries = [];
+  List<VaultEntry> _deletedEntries = [];
+  String? _filterCategory;
   final DbServices _dbServices = DbServices();
   final SecurityService _securityService = SecurityService();
   
-  List<VaultEntry> get entries => _entries;
+  List<VaultEntry> get entries {
+    final active = _entries.where((e) => !e.isDeleted).toList();
+    if (_filterCategory == null || _filterCategory == 'Todo') {
+      return active;
+    }
+    return active.where((e) => e.category == _filterCategory).toList();
+  }
+
+  List<VaultEntry> get deletedEntries => _deletedEntries;
+
+  double get vaultHealth {
+    final active = _entries.where((e) => !e.isDeleted).toList();
+    if (active.isEmpty) return 1.0;
+    final total = active.fold(0.0, (sum, e) => sum + e.strengthScore);
+    return total / active.length;
+  }
+
+  String? get filterCategory => _filterCategory;
+
+  void setFilterCategory(String? category) {
+    _filterCategory = category;
+    notifyListeners();
+  }
 
   Future<void> loadEntries(int userId) async {
-    _entries = await _dbServices.getVaultEntries(userId);
+    final all = await _dbServices.getVaultEntries(userId);
+    _entries = all.where((e) => !e.isDeleted).toList();
+    _deletedEntries = all.where((e) => e.isDeleted).toList();
     notifyListeners();
   }
 
@@ -45,7 +71,39 @@ class VaultController with ChangeNotifier {
     return _securityService.decryptData(encryptedBase64, masterPassword);
   }
 
-  Future<void> deleteEntry(int id, int userId) async {
+  Future<void> softDeleteEntry(VaultEntry entry) async {
+    final updated = VaultEntry(
+      id: entry.id,
+      userId: entry.userId,
+      title: entry.title,
+      username: entry.username,
+      encryptedPassword: entry.encryptedPassword,
+      category: entry.category,
+      description: entry.description,
+      strengthScore: entry.strengthScore,
+      isDeleted: true,
+    );
+    await _dbServices.updateVaultEntry(updated);
+    await loadEntries(entry.userId);
+  }
+
+  Future<void> restoreEntry(VaultEntry entry) async {
+    final updated = VaultEntry(
+      id: entry.id,
+      userId: entry.userId,
+      title: entry.title,
+      username: entry.username,
+      encryptedPassword: entry.encryptedPassword,
+      category: entry.category,
+      description: entry.description,
+      strengthScore: entry.strengthScore,
+      isDeleted: false,
+    );
+    await _dbServices.updateVaultEntry(updated);
+    await loadEntries(entry.userId);
+  }
+
+  Future<void> deletePermanently(int id, int userId) async {
     await _dbServices.deleteVaultEntry(id);
     await loadEntries(userId);
   }

@@ -7,6 +7,7 @@ class VaultEntry {
   final String category;
   final String? description;
   final double strengthScore;
+  final bool isDeleted;
 
   VaultEntry({
     this.id,
@@ -17,6 +18,7 @@ class VaultEntry {
     required this.category,
     this.description,
     this.strengthScore = 0.0,
+    this.isDeleted = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +31,7 @@ class VaultEntry {
       'category': category,
       'description': description,
       'strengthScore': strengthScore,
+      'isDeleted': isDeleted ? 1 : 0,
     };
   }
 
@@ -42,6 +45,7 @@ class VaultEntry {
       category: map['category'],
       description: map['description'],
       strengthScore: map['strengthScore'] ?? 0.0,
+      isDeleted: (map['isDeleted'] ?? 0) == 1,
     );
   }
 }

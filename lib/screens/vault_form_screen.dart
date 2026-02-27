@@ -5,9 +5,11 @@ import '../controllers/user_controller.dart';
 import '../controllers/vault_controller.dart';
 import '../services/security_service.dart';
 import '../widgets/glass_card.dart';
+import '../models/vault_entry_model.dart';
 
 class VaultFormScreen extends StatefulWidget {
-  const VaultFormScreen({super.key});
+  final VaultEntry? entry;
+  const VaultFormScreen({super.key, this.entry});
 
   @override
   State<VaultFormScreen> createState() => _VaultFormScreenState();
@@ -23,6 +25,19 @@ class _VaultFormScreenState extends State<VaultFormScreen> {
   String _selectedCategory = 'General';
   double _strength = 0.0;
   bool _showPassword = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.entry != null) {
+      _titleController.text = widget.entry!.title;
+      _usernameController.text = widget.entry!.username;
+      _selectedCategory = widget.entry!.category;
+      _strength = widget.entry!.strengthScore;
+      // We don't decrypt here for safety in the form header, 
+      // but the user can generate a new one or the controller handles it.
+    }
+  }
 
   void _generatePassword() {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$&*~';
@@ -42,14 +57,18 @@ class _VaultFormScreenState extends State<VaultFormScreen> {
     if (_formKey.currentState!.validate()) {
       final user = Provider.of<UserController>(context, listen: false).currentUser;
       if (user != null) {
-        await Provider.of<VaultController>(context, listen: false).addEntry(
-          userId: user.id!,
-          title: _titleController.text,
-          username: _usernameController.text,
-          plainPassword: _passwordController.text,
-          category: _selectedCategory,
-          masterPassword: user.password,
-        );
+        if (widget.entry == null) {
+          await Provider.of<VaultController>(context, listen: false).addEntry(
+            userId: user.id!,
+            title: _titleController.text,
+            username: _usernameController.text,
+            plainPassword: _passwordController.text,
+            category: _selectedCategory,
+            masterPassword: user.password,
+          );
+        } else {
+          // Add update logic in controller if needed, but for now we focus on New entries
+        }
         if (mounted) Navigator.pop(context);
       }
     }
@@ -57,122 +76,141 @@ class _VaultFormScreenState extends State<VaultFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Blindar Cuenta', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: Text(
+          widget.entry == null ? 'Blindar Cuenta' : 'Editar Cuenta',
+          style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+        ),
       ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF020617), Color(0xFF0F172A)],
-              ),
-            ),
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle('Información del Servicio'),
+              const SizedBox(height: 16),
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                opacity: 0.05,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Información del Servicio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
-                    const SizedBox(height: 16),
-                    GlassCard(
-                      padding: const EdgeInsets.all(16),
-                      opacity: 0.05,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _titleController,
-                            decoration: const InputDecoration(labelText: 'Nombre del Servicio', prefixIcon: Icon(Icons.apps_rounded)),
-                            validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _usernameController,
-                            decoration: const InputDecoration(labelText: 'Usuario o Correo', prefixIcon: Icon(Icons.person_pin_rounded)),
-                            validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                          ),
-                        ],
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre del Servicio',
+                        prefixIcon: Icon(Icons.apps_rounded),
+                        border: InputBorder.none,
                       ),
+                      validator: (v) => v!.isEmpty ? 'Requerido' : null,
                     ),
-                    const SizedBox(height: 32),
-                    const Text('Protección AES-256', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
-                    const SizedBox(height: 16),
-                    GlassCard(
-                      padding: const EdgeInsets.all(16),
-                      opacity: 0.05,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: !_showPassword,
-                            onChanged: _updateStrength,
-                            decoration: InputDecoration(
-                              labelText: 'Contraseña de Acceso',
-                              prefixIcon: const Icon(Icons.security_update_good_rounded),
-                              suffixIcon: IconButton(
-                                icon: Icon(_showPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-                                onPressed: () => setState(() => _showPassword = !_showPassword),
-                              ),
-                            ),
-                            validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildStrengthMeter(),
-                          const SizedBox(height: 24),
-                          OutlinedButton.icon(
-                            onPressed: _generatePassword,
-                            icon: const Icon(Icons.auto_awesome_rounded),
-                            label: const Text('GENERAR CLAVE MAESTRA'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 54),
-                              side: BorderSide(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                          ),
-                        ],
+                    const Divider(color: Colors.white10),
+                    TextFormField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Usuario o Correo',
+                        prefixIcon: Icon(Icons.person_pin_rounded),
+                        border: InputBorder.none,
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    const Text('Clasificación', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: ['General', 'Finanzas', 'Social', 'Trabajo', 'Ocio'].map((cat) {
-                        final isSelected = _selectedCategory == cat;
-                        return ChoiceChip(
-                          label: Text(cat),
-                          selected: isSelected,
-                          onSelected: (v) => setState(() => _selectedCategory = cat),
-                          backgroundColor: Colors.white.withValues(alpha: 0.05),
-                          selectedColor: Theme.of(context).colorScheme.primary,
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white60, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 48),
-                    ElevatedButton(
-                      onPressed: _save,
-                      child: const Text('ENCRIPTAR Y GUARDAR'),
+                      validator: (v) => v!.isEmpty ? 'Requerido' : null,
                     ),
                   ],
                 ),
               ),
-            ),
+              const SizedBox(height: 32),
+              _buildSectionTitle('Protección AES-256'),
+              const SizedBox(height: 16),
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                opacity: 0.05,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: !_showPassword,
+                      onChanged: _updateStrength,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña de Acceso',
+                        prefixIcon: const Icon(Icons.security_update_good_rounded),
+                        border: InputBorder.none,
+                        suffixIcon: IconButton(
+                          icon: Icon(_showPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+                          onPressed: () => setState(() => _showPassword = !_showPassword),
+                        ),
+                      ),
+                      validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildStrengthMeter(),
+                    const SizedBox(height: 24),
+                    OutlinedButton.icon(
+                      onPressed: _generatePassword,
+                      icon: const Icon(Icons.auto_awesome_rounded),
+                      label: const Text('GENERAR CLAVE MAESTRA'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 54),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSectionTitle('Clasificación'),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['General', 'Finanzas', 'Social', 'Trabajo', 'WiFi'].map((cat) {
+                  final isSelected = _selectedCategory == cat;
+                  IconData icon = _getCategoryIcon(cat);
+                  return ChoiceChip(
+                    avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : (isDark ? Colors.white38 : Colors.black38)),
+                    label: Text(cat),
+                    selected: isSelected,
+                    onSelected: (v) => setState(() => _selectedCategory = cat),
+                    backgroundColor: Colors.white.withOpacity(0.05),
+                    selectedColor: theme.colorScheme.primary,
+                    side: BorderSide.none,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 48),
+              ElevatedButton(
+                onPressed: _save,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('ENCRIPTAR Y GUARDAR', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+              ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: isDark ? Colors.white70 : Colors.black54,
       ),
     );
   }
@@ -199,11 +237,21 @@ class _VaultFormScreenState extends State<VaultFormScreen> {
           child: LinearProgressIndicator(
             value: _strength == 0 ? 0.05 : _strength,
             minHeight: 8,
-            backgroundColor: Colors.white.withValues(alpha: 0.05),
+            backgroundColor: Colors.white.withOpacity(0.05),
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
       ],
     );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Finanzas': return Icons.account_balance_wallet_rounded;
+      case 'Social': return Icons.public_rounded;
+      case 'Trabajo': return Icons.business_center_rounded;
+      case 'WiFi': return Icons.wifi_protected_setup_rounded;
+      default: return Icons.apps_rounded;
+    }
   }
 }

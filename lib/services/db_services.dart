@@ -26,13 +26,13 @@ class DbServices {
     String path = join(await getDatabasesPath(), 'vault_database.db');
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute(
           'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, password TEXT)',
         );
         await db.execute(
-          'CREATE TABLE vault_entries(id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, title TEXT, username TEXT, encryptedPassword TEXT, category TEXT, description TEXT, strengthScore REAL)',
+          'CREATE TABLE vault_entries(id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, title TEXT, username TEXT, encryptedPassword TEXT, category TEXT, description TEXT, strengthScore REAL, isDeleted INTEGER DEFAULT 0)',
         );
       },
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -41,8 +41,11 @@ class DbServices {
         }
         if (oldVersion < 3) {
           await db.execute(
-            'CREATE TABLE vault_entries(id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, title TEXT, username TEXT, encryptedPassword TEXT, category TEXT, description TEXT, strengthScore REAL)',
+            'CREATE TABLE vault_entries(id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, title TEXT, username TEXT, encryptedPassword TEXT, category TEXT, description TEXT, strengthScore REAL, isDeleted INTEGER DEFAULT 0)',
           );
+        }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE vault_entries ADD COLUMN isDeleted INTEGER DEFAULT 0');
         }
       },
     );
