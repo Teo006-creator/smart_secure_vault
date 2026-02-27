@@ -5,6 +5,7 @@ import '../controllers/user_controller.dart';
 import '../controllers/vault_controller.dart';
 import '../widgets/glass_card.dart';
 import 'vault_form_screen.dart';
+import 'vault_detail_screen.dart';
 import 'login_screen.dart';
 
 class VaultListScreen extends StatefulWidget {
@@ -198,6 +199,14 @@ class _VaultListScreenState extends State<VaultListScreen> {
       child: GlassCard(
         opacity: 0.05,
         child: ListTile(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VaultDetailScreen(entry: entry),
+              ),
+            );
+          },
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           leading: Container(
             padding: const EdgeInsets.all(10),

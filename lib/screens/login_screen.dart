@@ -68,10 +68,26 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Hero(
                   tag: 'app_logo',
-                  child: Image.asset(
-                    'assets/app_logo_v2.png',
-                    height: 120,
-                    color: isDark ? null : theme.colorScheme.primary,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withOpacity(0.2),
+                          blurRadius: 30,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Opacity(
+                      opacity: 0.85,
+                      child: Image.asset(
+                        'assets/app_logo_v2.png',
+                        height: 120,
+                        color: isDark ? Colors.white.withOpacity(0.9) : theme.colorScheme.primary,
+                        colorBlendMode: isDark ? BlendMode.modulate : BlendMode.srcIn,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
