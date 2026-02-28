@@ -8,6 +8,7 @@ class GlassCard extends StatelessWidget {
   final double borderRadius;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
+  final Color? color;
 
   const GlassCard({
     super.key,
@@ -17,13 +18,14 @@ class GlassCard extends StatelessWidget {
     this.borderRadius = 24.0,
     this.padding,
     this.margin,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.white : Colors.black;
+    final baseColor = color ?? (isDark ? Colors.white : Colors.black);
 
     return Container(
       margin: margin,

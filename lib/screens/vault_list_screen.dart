@@ -41,12 +41,8 @@ class _VaultListScreenState extends State<VaultListScreen> {
       appBar: AppBar(
         title: const Text('Bóveda Inteligente', style: TextStyle(fontWeight: FontWeight.w900)),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search_rounded, color: theme.colorScheme.primary),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
+        actions: const [
+          SizedBox(width: 8),
         ],
       ),
       body: Consumer<VaultController>(
@@ -239,24 +235,7 @@ class _VaultListScreenState extends State<VaultListScreen> {
               ),
             ],
           ),
-          trailing: PopupMenuButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'copy', child: ListTile(leading: Icon(Icons.copy_rounded), title: Text('Copiar'))),
-              const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit_rounded), title: Text('Editar'))),
-              const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete_outline_rounded, color: Colors.redAccent), title: Text('Eliminar', style: TextStyle(color: Colors.redAccent)))),
-            ],
-            onSelected: (val) {
-              if (val == 'copy') {
-                final vault = Provider.of<VaultController>(context, listen: false);
-                final decrypted = vault.decryptPassword(entry.password, masterPassword);
-                Clipboard.setData(ClipboardData(text: decrypted));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contraseña copiada al portapapeles')));
-              } else if (val == 'delete') {
-                Provider.of<VaultController>(context, listen: false).softDeleteEntry(entry);
-              }
-            },
-          ),
+          trailing: Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.1)),
         ),
       ),
     );

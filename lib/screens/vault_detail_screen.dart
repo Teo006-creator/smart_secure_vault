@@ -5,6 +5,7 @@ import '../models/vault_entry_model.dart';
 import '../controllers/vault_controller.dart';
 import '../controllers/user_controller.dart';
 import '../widgets/glass_card.dart';
+import 'vault_form_screen.dart';
 
 class VaultDetailScreen extends StatefulWidget {
   final VaultEntry entry;
@@ -19,13 +20,13 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
   bool _showPassword = false;
   String? _decryptedPassword;
 
-  void _togglePassword() {
+  void _togglePassword(VaultEntry entry) {
     if (_decryptedPassword == null) {
       final user = Provider.of<UserController>(context, listen: false).currentUser;
       if (user != null) {
         final vault = Provider.of<VaultController>(context, listen: false);
         setState(() {
-          _decryptedPassword = vault.decryptPassword(widget.entry.encryptedPassword, user.password);
+          _decryptedPassword = vault.decryptPassword(entry.encryptedPassword, user.password);
           _showPassword = true;
         });
       }
@@ -36,11 +37,11 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
     }
   }
 
-  void _copyPassword() {
+  void _copyPassword(VaultEntry entry) {
     final user = Provider.of<UserController>(context, listen: false).currentUser;
     if (user != null) {
       final vault = Provider.of<VaultController>(context, listen: false);
-      final decrypted = vault.decryptPassword(widget.entry.encryptedPassword, user.password);
+      final decrypted = vault.decryptPassword(entry.encryptedPassword, user.password);
       Clipboard.setData(ClipboardData(text: decrypted));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Contraseña copiada al portapapeles')),
@@ -60,52 +61,91 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit_rounded),
             onPressed: () {
-              // Navigation to edit can be added later if needed
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VaultFormScreen(entry: widget.entry),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('¿Eliminar cuenta?'),
+                  content: const Text('Esta cuenta se enviará a la papelera.'),
+                  actions: [
+                    TextButton(child: const Text('CANCELAR'), onPressed: () => Navigator.pop(context, false)),
+                    TextButton(
+                      child: const Text('ELIMINAR', style: TextStyle(color: Colors.redAccent)),
+                      onPressed: () => Navigator.pop(context, true),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirmed == true && mounted) {
+                await Provider.of<VaultController>(context, listen: false).softDeleteEntry(widget.entry);
+                if (mounted) Navigator.pop(context);
+              }
             },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
+      body: Consumer<VaultController>(
+        builder: (context, vaultController, child) {
+          // Find the updated entry in the controller
+          final currentEntry = vaultController.entries.firstWhere(
+            (e) => e.id == widget.entry.id,
+            orElse: () => widget.entry,
+          );
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _getCategoryIcon(currentEntry.category),
+                      size: 48,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  _getCategoryIcon(widget.entry.category),
-                  size: 48,
-                  color: theme.colorScheme.primary,
+                const SizedBox(height: 24),
+                Center(
+                  child: Text(
+                    currentEntry.title,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 32),
+                _buildInfoCard(currentEntry, isDark, theme),
+                const SizedBox(height: 24),
+                _buildPasswordCard(currentEntry, isDark, theme),
+                if (currentEntry.description != null && currentEntry.description!.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _buildDescriptionCard(currentEntry.description!, isDark),
+                ],
+              ],
             ),
-            const SizedBox(height: 24),
-            Center(
-              child: Text(
-                widget.entry.title,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 32),
-            _buildInfoCard(isDark, theme),
-            const SizedBox(height: 24),
-            _buildPasswordCard(isDark, theme),
-            if (widget.entry.description != null && widget.entry.description!.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildDescriptionCard(isDark),
-            ],
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildInfoCard(bool isDark, ThemeData theme) {
+  Widget _buildInfoCard(VaultEntry entry, bool isDark, ThemeData theme) {
     return GlassCard(
       padding: const EdgeInsets.all(20),
       opacity: 0.05,
@@ -114,30 +154,30 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
           _buildDetailRow(
             Icons.person_outline_rounded,
             'Usuario',
-            widget.entry.username,
+            entry.username,
             isDark,
           ),
           const Divider(color: Colors.white10, height: 32),
           _buildDetailRow(
             Icons.category_outlined,
             'Categoría',
-            widget.entry.category,
+            entry.category,
             isDark,
           ),
           const Divider(color: Colors.white10, height: 32),
           _buildDetailRow(
             Icons.security_rounded,
             'Seguridad',
-            _getStrengthText(widget.entry.strengthScore),
+            _getStrengthText(entry.strengthScore),
             isDark,
-            valueColor: _getStrengthColor(widget.entry.strengthScore),
+            valueColor: _getStrengthColor(entry.strengthScore),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPasswordCard(bool isDark, ThemeData theme) {
+  Widget _buildPasswordCard(VaultEntry entry, bool isDark, ThemeData theme) {
     return GlassCard(
       padding: const EdgeInsets.all(20),
       opacity: 0.05,
@@ -165,12 +205,12 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
               ),
               IconButton(
                 icon: Icon(_showPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-                onPressed: _togglePassword,
+                onPressed: () => _togglePassword(entry),
                 color: theme.colorScheme.primary,
               ),
               IconButton(
                 icon: const Icon(Icons.copy_rounded),
-                onPressed: _copyPassword,
+                onPressed: () => _copyPassword(entry),
                 color: theme.colorScheme.primary,
               ),
             ],
@@ -180,7 +220,7 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
     );
   }
 
-  Widget _buildDescriptionCard(bool isDark) {
+  Widget _buildDescriptionCard(String description, bool isDark) {
     return GlassCard(
       padding: const EdgeInsets.all(20),
       opacity: 0.05,
@@ -193,7 +233,7 @@ class _VaultDetailScreenState extends State<VaultDetailScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            widget.entry.description!,
+            description,
             style: const TextStyle(fontSize: 14, height: 1.5),
           ),
         ],

@@ -67,6 +67,34 @@ class VaultController with ChangeNotifier {
     await loadEntries(userId);
   }
 
+  Future<void> updateEntry({
+    required VaultEntry originalEntry,
+    required String title,
+    required String username,
+    required String plainPassword,
+    required String category,
+    required String masterPassword,
+    String? description,
+  }) async {
+    final encrypted = _securityService.encryptData(plainPassword, masterPassword);
+    final strength = _securityService.calculateStrength(plainPassword);
+
+    final updated = VaultEntry(
+      id: originalEntry.id,
+      userId: originalEntry.userId,
+      title: title,
+      username: username,
+      encryptedPassword: encrypted,
+      category: category,
+      description: description,
+      strengthScore: strength,
+      isDeleted: originalEntry.isDeleted,
+    );
+
+    await _dbServices.updateVaultEntry(updated);
+    await loadEntries(originalEntry.userId);
+  }
+
   String decryptPassword(String encryptedBase64, String masterPassword) {
     return _securityService.decryptData(encryptedBase64, masterPassword);
   }

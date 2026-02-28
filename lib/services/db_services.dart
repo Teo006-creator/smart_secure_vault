@@ -26,10 +26,10 @@ class DbServices {
     String path = join(await getDatabasesPath(), 'vault_database.db');
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await db.execute(
-          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, password TEXT)',
+          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, password TEXT, createdAt TEXT)',
         );
         await db.execute(
           'CREATE TABLE vault_entries(id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, title TEXT, username TEXT, encryptedPassword TEXT, category TEXT, description TEXT, strengthScore REAL, isDeleted INTEGER DEFAULT 0)',
@@ -47,6 +47,9 @@ class DbServices {
         if (oldVersion < 4) {
           await db.execute('ALTER TABLE vault_entries ADD COLUMN isDeleted INTEGER DEFAULT 0');
         }
+        if (oldVersion < 5) {
+          await db.execute('ALTER TABLE users ADD COLUMN createdAt TEXT');
+        }
       },
     );
   }
@@ -54,7 +57,16 @@ class DbServices {
   // --- User Operations ---
   Future<int> insertUser(User user) async {
     final db = await database;
-    return await db.insert('users', user.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    
+    // Auto-generate creation date if not present
+    final months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    final now = DateTime.now();
+    final creationDate = user.createdAt ?? '${months[now.month - 1]} ${now.year}';
+    
+    final userData = user.toMap();
+    userData['createdAt'] = creationDate;
+    
+    return await db.insert('users', userData, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<User>> getUsers() async {
@@ -85,6 +97,9 @@ class DbServices {
 
   Future<int> deleteUser(int id) async {
     final db = await database;
+    // Secure wipe: first delete all associated vault entries
+    await db.delete('vault_entries', where: 'userId = ?', whereArgs: [id]);
+    // Then delete the user
     return await db.delete('users', where: 'id = ?', whereArgs: [id]);
   }
 

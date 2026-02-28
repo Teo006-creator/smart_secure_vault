@@ -34,8 +34,17 @@ class _VaultFormScreenState extends State<VaultFormScreen> {
       _usernameController.text = widget.entry!.username;
       _selectedCategory = widget.entry!.category;
       _strength = widget.entry!.strengthScore;
-      // We don't decrypt here for safety in the form header, 
-      // but the user can generate a new one or the controller handles it.
+      
+      // Decrypt password for editing
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final user = Provider.of<UserController>(context, listen: false).currentUser;
+        if (user != null) {
+          final vault = Provider.of<VaultController>(context, listen: false);
+          setState(() {
+            _passwordController.text = vault.decryptPassword(widget.entry!.encryptedPassword, user.password);
+          });
+        }
+      });
     }
   }
 
@@ -67,7 +76,14 @@ class _VaultFormScreenState extends State<VaultFormScreen> {
             masterPassword: user.password,
           );
         } else {
-          // Add update logic in controller if needed, but for now we focus on New entries
+          await Provider.of<VaultController>(context, listen: false).updateEntry(
+            originalEntry: widget.entry!,
+            title: _titleController.text,
+            username: _usernameController.text,
+            plainPassword: _passwordController.text,
+            category: _selectedCategory,
+            masterPassword: user.password,
+          );
         }
         if (mounted) Navigator.pop(context);
       }

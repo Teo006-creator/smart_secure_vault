@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/vault_controller.dart';
+import '../controllers/user_controller.dart';
 import '../controllers/navigation_controller.dart';
 import '../widgets/glass_card.dart';
 import 'vault_form_screen.dart';
@@ -23,8 +24,18 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Hola de nuevo,', style: TextStyle(color: isDark ? Colors.white60 : Colors.black45, fontSize: 16)),
-              Text('Stalyn', style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 28, fontWeight: FontWeight.bold)),
+              Consumer<UserController>(
+                builder: (context, userController, child) {
+                  final userName = userController.currentUser?.name.split(' ').first ?? 'Usuario';
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Hola de nuevo,', style: TextStyle(color: isDark ? Colors.white60 : Colors.black45, fontSize: 16)),
+                      Text(userName, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 28, fontWeight: FontWeight.bold)),
+                    ],
+                  );
+                },
+              ),
               const SizedBox(height: 32),
               _buildQuickStats(context),
               const SizedBox(height: 24),
