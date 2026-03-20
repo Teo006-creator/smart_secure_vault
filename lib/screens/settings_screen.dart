@@ -198,9 +198,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       String? error = await _cloudSync.backupData();
       if (context.mounted) {
         bool success = error == null;
+        String message = success ? 'Respaldo completado con éxito' : 'Error: $error';
+        if (error != null && error.contains('TU_CLIENT_ID_AQUI')) {
+          message = 'Configuración requerida: Ingresa tu Client ID en CloudSyncService.dart';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'Respaldo completado con éxito' : 'Error: $error'),
+            content: Text(message),
             backgroundColor: success ? const Color(0xFF10B981) : Colors.redAccent,
           ),
         );
@@ -228,9 +232,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       String? error = await _cloudSync.restoreData();
       if (context.mounted) {
         bool success = error == null;
+        String message = success ? 'Restauración completada con éxito. Reinicia la app.' : 'Error: $error';
+        if (error != null && error.contains('TU_CLIENT_ID_AQUI')) {
+          message = 'Configuración requerida: Ingresa tu Client ID en CloudSyncService.dart';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'Restauración completada con éxito. Reinicia la app.' : 'Error: $error'),
+            content: Text(message),
             backgroundColor: success ? const Color(0xFF10B981) : Colors.redAccent,
           ),
         );
