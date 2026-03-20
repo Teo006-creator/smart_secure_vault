@@ -19,8 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     setState(() => _isLoading = true);
-    final success = await Provider.of<UserController>(context, listen: false)
-        .login(_emailController.text, _passwordController.text);
+    final success = await Provider.of<UserController>(
+      context,
+      listen: false,
+    ).login(_emailController.text, _passwordController.text);
     setState(() => _isLoading = false);
 
     if (success) {
@@ -44,7 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _loginWithBiometrics() async {
-    final success = await Provider.of<UserController>(context, listen: false).loginWithBiometrics();
+    final success = await Provider.of<UserController>(
+      context,
+      listen: false,
+    ).loginWithBiometrics();
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
@@ -70,23 +75,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   tag: 'app_logo',
                   child: Container(
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: theme.colorScheme.primary.withOpacity(0.2),
-                          blurRadius: 30,
-                          spreadRadius: 10,
+                          color: theme.colorScheme.primary.withOpacity(0.3),
+                          blurRadius: 15,
+                          spreadRadius: 1,
                         ),
                       ],
                     ),
-                    child: Opacity(
-                      opacity: 0.85,
-                      child: Image.asset(
-                        'assets/app_logo_v2.png',
-                        height: 120,
-                        color: isDark ? Colors.white.withOpacity(0.9) : theme.colorScheme.primary,
-                        colorBlendMode: isDark ? BlendMode.modulate : BlendMode.srcIn,
-                      ),
+                    child: Icon(
+                      Icons.shield_outlined,
+                      size: 100,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -94,15 +94,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'SMART SECURE VAULT',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 6,
                     color: theme.colorScheme.primary,
                   ),
                 ),
                 Text(
                   'Tu privacidad es nuestra prioridad',
-                  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 13),
+                  style: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontSize: 12,
+                    letterSpacing: 1,
+                  ),
                 ),
                 const SizedBox(height: 48),
                 GlassCard(
@@ -133,7 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: _login,
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(double.infinity, 56),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
                               child: const Text('ACCEDER A LA BÓVEDA'),
                             ),
@@ -144,7 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         label: const Text('BIOMETRÍA'),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 56),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                       ),
                     ],
@@ -155,7 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const UserFormScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const UserFormScreen(),
+                      ),
                     );
                   },
                   child: Text(

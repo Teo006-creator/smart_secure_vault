@@ -28,7 +28,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ajustes', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Ajustes',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -37,41 +40,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionTitle('Personalización', isDark),
             const SizedBox(height: 16),
             GlassCard(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               opacity: 0.05,
-              child: SegmentedButton<AppTheme>(
-                segments: const [
-                  ButtonSegment<AppTheme>(
-                    value: AppTheme.indigo, 
-                    label: Text('Azul', style: TextStyle(fontSize: 10)), 
-                    icon: Icon(Icons.circle, color: Color(0xFF6366F1), size: 12),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildThemeChip(
+                    'Indigo',
+                    AppTheme.indigo,
+                    const Color(0xFF6366F1),
+                    themeController,
                   ),
-                  ButtonSegment<AppTheme>(
-                    value: AppTheme.black, 
-                    label: Text('Negro', style: TextStyle(fontSize: 10)), 
-                    icon: Icon(Icons.circle, color: Colors.black, size: 12),
+                  _buildThemeChip(
+                    'Negro',
+                    AppTheme.black,
+                    Colors.black,
+                    themeController,
                   ),
-                  ButtonSegment<AppTheme>(
-                    value: AppTheme.light, 
-                    label: Text('Claro', style: TextStyle(fontSize: 10)), 
-                    icon: Icon(Icons.circle, color: Colors.white, size: 12),
+                  _buildThemeChip(
+                    'Claro',
+                    AppTheme.light,
+                    Colors.white,
+                    themeController,
                   ),
-                  ButtonSegment<AppTheme>(
-                    value: AppTheme.emerald, 
-                    label: Text('Verde', style: TextStyle(fontSize: 10)), 
-                    icon: Icon(Icons.circle, color: Color(0xFF10B981), size: 12),
+                  _buildThemeChip(
+                    'Esmeralda',
+                    AppTheme.emerald,
+                    const Color(0xFF10B981),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Rojo Mate',
+                    AppTheme.matteRed,
+                    const Color(0xFFE53935),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Catppuccin',
+                    AppTheme.catppuccinMocha,
+                    const Color(0xFFCBA6F7),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Tokyo',
+                    AppTheme.tokyoNight,
+                    const Color(0xFF7AA2F7),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Rose Pine',
+                    AppTheme.rosePine,
+                    const Color(0xFFEBBCBA),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Dracula',
+                    AppTheme.dracula,
+                    const Color(0xFFBD93F9),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Nord',
+                    AppTheme.nord,
+                    const Color(0xFF81A1C1),
+                    themeController,
+                  ),
+                  _buildThemeChip(
+                    'Gruvbox',
+                    AppTheme.gruvbox,
+                    const Color(0xFFFABD2F),
+                    themeController,
                   ),
                 ],
-                selected: {themeController.currentTheme},
-                onSelectionChanged: (Set<AppTheme> newSelection) {
-                  themeController.setTheme(newSelection.first);
-                },
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  selectedBackgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-                  selectedForegroundColor: theme.colorScheme.primary,
-                  side: BorderSide.none,
-                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -84,14 +125,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.person_outline_rounded),
                     title: const Text('Perfil de Usuario'),
-                    subtitle: Text(userController.currentUser?.email ?? 'No conectado', 
-                      style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)),
+                    subtitle: Text(
+                      userController.currentUser?.email ?? 'No conectado',
+                      style: TextStyle(
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
+                    ),
                     onTap: () {
                       if (userController.currentUser != null) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => UserDetailScreen(user: userController.currentUser!),
+                            builder: (context) => UserDetailScreen(
+                              user: userController.currentUser!,
+                            ),
                           ),
                         );
                       }
@@ -99,13 +146,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const Divider(color: Colors.white10, height: 1),
                   ListTile(
-                    leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                    title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent)),
+                    leading: const Icon(
+                      Icons.logout_rounded,
+                      color: Colors.redAccent,
+                    ),
+                    title: const Text(
+                      'Cerrar Sesión',
+                      style: TextStyle(color: Colors.redAccent),
+                    ),
                     onTap: () {
                       userController.logout();
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
                         (route) => false,
                       );
                     },
@@ -130,13 +185,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.delete_outline_rounded),
                     title: const Text('Contraseñas Eliminadas'),
-                    subtitle: Text('Papelera de reciclaje', 
-                      style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)),
+                    subtitle: Text(
+                      'Papelera de reciclaje',
+                      style: TextStyle(
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
+                    ),
                     trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const DeletedEntriesScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const DeletedEntriesScreen(),
+                        ),
                       );
                     },
                   ),
@@ -150,20 +211,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
               opacity: 0.05,
               child: Column(
                 children: [
-                   ListTile(
+                  ListTile(
                     leading: Icon(
-                      _isSyncing ? Icons.sync : Icons.cloud_done_rounded, 
-                      color: _isSyncing ? Colors.blueAccent : const Color(0xFF10B981)
+                      _isSyncing ? Icons.sync : Icons.cloud_done_rounded,
+                      color: _isSyncing
+                          ? Colors.blueAccent
+                          : const Color(0xFF10B981),
                     ),
                     title: const Text('Respaldar en Google Drive'),
-                    subtitle: Text(_isSyncing ? 'Sincronizando...' : 'Última copia: Hoy', 
-                      style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 11)),
-                    trailing: _isSyncing ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : null,
+                    subtitle: Text(
+                      _isSyncing ? 'Sincronizando...' : 'Última copia: Hoy',
+                      style: TextStyle(
+                        color: isDark ? Colors.white38 : Colors.black38,
+                        fontSize: 11,
+                      ),
+                    ),
+                    trailing: _isSyncing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : null,
                     onTap: _isSyncing ? null : () => _handleBackup(context),
                   ),
                   const Divider(color: Colors.white10, height: 1),
                   ListTile(
-                    leading: const Icon(Icons.cloud_download_rounded, color: Colors.orangeAccent),
+                    leading: const Icon(
+                      Icons.cloud_download_rounded,
+                      color: Colors.orangeAccent,
+                    ),
                     title: const Text('Restaurar desde la Nube'),
                     onTap: _isSyncing ? null : () => _handleRestore(context),
                   ),
@@ -176,10 +253,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             GlassCard(
               opacity: 0.05,
               child: ListTile(
-                leading: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
-                title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.redAccent)),
-                subtitle: Text('Borrar todos los datos permanentemente', 
-                  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 11)),
+                leading: const Icon(
+                  Icons.delete_forever_rounded,
+                  color: Colors.redAccent,
+                ),
+                title: const Text(
+                  'Eliminar Cuenta',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                subtitle: Text(
+                  'Borrar todos los datos permanentemente',
+                  style: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontSize: 11,
+                  ),
+                ),
                 onTap: () => _showDeleteAccountDialog(context, userController),
               ),
             ),
@@ -198,21 +286,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       String? error = await _cloudSync.backupData();
       if (context.mounted) {
         bool success = error == null;
-        String message = success ? 'Respaldo completado con éxito' : 'Error: $error';
+        String message = success
+            ? 'Respaldo completado con éxito'
+            : 'Error: $error';
         if (error != null && error.contains('TU_CLIENT_ID_AQUI')) {
-          message = 'Configuración requerida: Ingresa tu Client ID en CloudSyncService.dart';
+          message =
+              'Configuración requerida: Ingresa tu Client ID en CloudSyncService.dart';
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
-            backgroundColor: success ? const Color(0xFF10B981) : Colors.redAccent,
+            backgroundColor: success
+                ? const Color(0xFF10B981)
+                : Colors.redAccent,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error inesperado: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text('Error inesperado: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     } finally {
@@ -232,21 +328,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       String? error = await _cloudSync.restoreData();
       if (context.mounted) {
         bool success = error == null;
-        String message = success ? 'Restauración completada con éxito. Reinicia la app.' : 'Error: $error';
+        String message = success
+            ? 'Restauración completada con éxito. Reinicia la app.'
+            : 'Error: $error';
         if (error != null && error.contains('TU_CLIENT_ID_AQUI')) {
-          message = 'Configuración requerida: Ingresa tu Client ID en CloudSyncService.dart';
+          message =
+              'Configuración requerida: Ingresa tu Client ID en CloudSyncService.dart';
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
-            backgroundColor: success ? const Color(0xFF10B981) : Colors.redAccent,
+            backgroundColor: success
+                ? const Color(0xFF10B981)
+                : Colors.redAccent,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error inesperado: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text('Error inesperado: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     } finally {
@@ -258,12 +362,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showDeleteAccountDialog(BuildContext context, UserController userController) {
+  void _showDeleteAccountDialog(
+    BuildContext context,
+    UserController userController,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('¿Eliminar Cuenta?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          '¿Eliminar Cuenta?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         content: const Text(
           'Esta acción borrará todas tus contraseñas y tu perfil de forma permanente. No podrás recuperar los datos.',
           style: TextStyle(color: Colors.white70),
@@ -271,27 +381,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCELAR', style: TextStyle(color: Colors.white38)),
+            child: const Text(
+              'CANCELAR',
+              style: TextStyle(color: Colors.white38),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _showFinalConfirmation(context, userController);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent.withOpacity(0.2)),
-            child: const Text('SÍ, ESTOY SEGURO', style: TextStyle(color: Colors.redAccent)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent.withOpacity(0.2),
+            ),
+            child: const Text(
+              'SÍ, ESTOY SEGURO',
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showFinalConfirmation(BuildContext context, UserController userController) {
+  void _showFinalConfirmation(
+    BuildContext context,
+    UserController userController,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Confirmación Final', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Confirmación Final',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         content: const Text(
           '¿Realmente deseas destruir tu bóveda maestra ahora?',
           style: TextStyle(color: Colors.white70),
@@ -299,7 +423,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCELAR', style: TextStyle(color: Colors.white38)),
+            child: const Text(
+              'CANCELAR',
+              style: TextStyle(color: Colors.white38),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -309,7 +436,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
                     (route) => false,
                   );
                 }
@@ -331,6 +460,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
         fontSize: 12,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildThemeChip(
+    String label,
+    AppTheme theme,
+    Color color,
+    ThemeController controller,
+  ) {
+    final isSelected = controller.currentTheme == theme;
+    return GestureDetector(
+      onTap: () => controller.setTheme(theme),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? color : Colors.white24,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white24),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? color : Colors.white70,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
